@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width: 100%, initial-scale=1.0">
+
+    <title>Sketch</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="libraries/p5.min.js"></script>
+    <script src="libraries/p5.sound.min.js"></script>
+
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* 防止滾動條 */
+      }
+
+      .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw; /* 視窗寬度 */
+        height: 100vh; /* 視窗高度 */
+        pointer-events: none; /* 禁止模態框背景的互動 */
+        z-index: 1000; /* 確保模態框在背景上方，但低於子選單 */
+      }
+
+      .popup-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%; /* 根據視窗寬度調整 */
+        height: auto;
+        background-color: transparent; /* 設為透明，避免白色背景干擾 */
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        padding: 20px;
+        pointer-events: auto; /* 啟用互動 */
+      }
+
+      #quiz-content, #popup-image, #popup-video {
+        display: none; /* 預設隱藏所有內容 */
+      }
+
+      .popup-content h2 {
+        color: #87CEEB; /* 題目顏色為淺藍色 */
+        font-size: 2vw; /* 隨視窗大小調整字體 */
+      }
+
+      .popup-content button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 1.5vw; /* 隨視窗大小調整字體 */
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        background-color: #007BFF;
+        color: white;
+      }
+
+      .popup-content button:hover {
+        background-color: #0056b3;
+      }
+
+      img#popup-image {
+        width: 100%; /* 填滿模態框 */
+        height: auto; /* 按比例縮放 */
+        border-radius: 10px;
+      }
+
+      video#popup-video {
+        width: 100%; /* 填滿模態框 */
+        height: auto; /* 按比例縮放 */
+        border-radius: 10px;
+      }
+
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        z-index: 2000; /* 確保選單在模態框上方 */
+      }
+
+      nav ul li {
+        display: inline-block;
+        position: relative;
+      }
+
+      nav ul li a {
+        text-decoration: none;
+        padding: 10px 15px;
+        display: inline-block;
+        color: #333;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 新增選單 -->
+    <nav>
+      <ul>
+        <li><a href="#" onclick="showImage()">首頁</a></li>
+        <li><a href="about.html" onclick="hideMedia()">自我介紹</a></li>
+        <li class="dropdown">
+          <a href="portfolio.html" onclick="hideMedia()">作品集</a>
+          <ul class="dropdown-menu">
+            <li><a href="week1.html" onclick="hideMedia()">第一週</a></li>
+            <li><a href="week2.html" onclick="hideMedia()">第二週</a></li>
+            <li><a href="week3.html" onclick="hideMedia()">第三週</a></li>
+            <li><a href="week4.html" onclick="hideMedia()">第四週</a></li>
+          </ul>
+        </li>
+        <li><a href="#" onclick="showQuiz()">測驗卷</a></li>
+        <li><a href="#" onclick="showVideo()">教學影片</a></li>
+      </ul>
+    </nav>
+
+    <!-- 模態框 -->
+    <div id="popup" class="popup">
+      <div class="popup-content" id="quiz-content" style="display: none;">
+        <h2 id="quiz-question">題目 1: 5 + 3 = ?</h2>
+        <button onclick="checkAnswer(8)">8</button>
+        <button onclick="checkAnswer(9)">9</button>
+        <button onclick="checkAnswer(7)">7</button>
+        <p id="quiz-result" style="margin-top: 20px; font-size: 18px;"></p>
+      </div>
+      <div class="popup-content">
+        <img id="popup-image" src="report.png" alt="教育科技程式設計期中報告" style="display: none;">
+        <video id="popup-video" controls style="display: none;">
+          <source src="https://cfchen58.synology.me/程式設計2024/A2/week8/20250411_113919.mp4" type="video/mp4">
+          您的瀏覽器不支援影片播放。
+        </video>
+      </div>
+    </div>
+
+    <script>
+      let currentQuestion = 1;
+      let correctAnswers = 0;
+      const totalQuestions = 3;
+
+      function showImage() {
+        const image = document.getElementById("popup-image");
+        const video = document.getElementById("popup-video");
+        const quizContent = document.getElementById("quiz-content");
+        quizContent.style.display = "none"; // 隱藏測驗內容
+        video.style.display = "none"; // 隱藏影片
+        video.pause(); // 暫停影片
+        image.style.display = "block"; // 顯示圖片
+        image.style.animation = "fly-in 1s ease-out forwards"; // 執行飛入動畫
+      }
+
+      function showVideo() {
+        const image = document.getElementById("popup-image");
+        const video = document.getElementById("popup-video");
+        const quizContent = document.getElementById("quiz-content");
+        quizContent.style.display = "none"; // 隱藏測驗內容
+        image.style.display = "none"; // 隱藏圖片
+        video.style.display = "block"; // 顯示影片
+        video.style.animation = "fly-in 1s ease-out forwards"; // 執行飛入動畫
+        video.play(); // 播放影片
+      }
+
+      function showQuiz() {
+        const quizContent = document.getElementById("quiz-content");
+        const popup = document.getElementById("popup");
+        const image = document.getElementById("popup-image");
+        const video = document.getElementById("popup-video");
+        image.style.display = "none"; // 隱藏圖片
+        video.style.display = "none"; // 隱藏影片
+        video.pause(); // 暫停影片
+        quizContent.style.display = "block"; // 顯示測驗內容
+        popup.style.pointerEvents = "auto"; // 啟用互動
+        currentQuestion = 1; // 重置題目
+        correctAnswers = 0; // 重置正確答案計數
+        loadQuestion();
+      }
+
+      function loadQuestion() {
+        const questions = [
+          { question: "題目 1: 5 + 3 = ?", correct: 8 },
+          { question: "題目 2: 10 - 4 = ?", correct: 6 },
+          { question: "題目 3: 6 * 2 = ?", correct: 12 }
+        ];
+        const questionElement = document.getElementById("quiz-question");
+        const resultElement = document.getElementById("quiz-result");
+        resultElement.textContent = ""; // 清空結果
+        if (currentQuestion <= questions.length) {
+          questionElement.textContent = questions[currentQuestion - 1].question;
+        }
+      }
+
+      function checkAnswer(answer) {
+        const questions = [
+          { question: "題目 1: 5 + 3 = ?", correct: 8 },
+          { question: "題目 2: 10 - 4 = ?", correct: 6 },
+          { question: "題目 3: 6 * 2 = ?", correct: 12 }
+        ];
+        const resultElement = document.getElementById("quiz-result");
+        if (answer === questions[currentQuestion - 1].correct) {
+          resultElement.textContent = "正確！";
+          resultElement.style.color = "green";
+          correctAnswers++;
+        } else {
+          resultElement.textContent = "錯誤，請再試一次！";
+          resultElement.style.color = "red";
+        }
+
+        // 下一題或顯示結果
+        setTimeout(() => {
+          if (currentQuestion < questions.length) {
+            currentQuestion++;
+            loadQuestion();
+          } else {
+            showResult();
+          }
+        }, 1000);
+      }
+
+      function showResult() {
+        const quizContent = document.getElementById("quiz-content");
+        const resultElement = document.getElementById("quiz-result");
+        resultElement.textContent = `測驗結束！正確答案數：${correctAnswers} / ${totalQuestions}`;
+        resultElement.style.color = "black";
+        setTimeout(() => {
+          quizContent.style.display = "none"; // 隱藏測驗內容
+          document.getElementById("popup").style.pointerEvents = "none"; // 禁用模態框互動
+        }, 3000);
+      }
+
+      function hideMedia() {
+        const image = document.getElementById("popup-image");
+        const video = document.getElementById("popup-video");
+        const quizContent = document.getElementById("quiz-content");
+        quizContent.style.display = "none"; // 隱藏測驗內容
+        if (image.style.display === "block") {
+          image.style.animation = "fly-out 1s ease-out forwards"; // 執行飛出動畫
+        }
+        if (video.style.display === "block") {
+          video.style.animation = "fly-out 1s ease-out forwards"; // 執行飛出動畫
+          video.pause(); // 暫停影片
+        }
+      }
+    </script>
+
+    <script src="sketch.js"></script>
+  </body>
+</html>
